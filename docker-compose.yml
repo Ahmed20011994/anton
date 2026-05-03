@@ -1,4 +1,20 @@
 services:
+  postgres:
+    image: pgvector/pgvector:pg16
+    environment:
+      POSTGRES_USER: anton
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-anton}
+      POSTGRES_DB: anton
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U anton -d anton"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
   anton:
     build: .
     image: anton:latest
@@ -6,4 +22,15 @@ services:
       - "8080:8080"
     env_file:
       - .env
+    environment:
+      # Override .env's DATABASE_URL — inside the container, Postgres is at
+      # the compose service name, not localhost. Keep .env pointing at
+      # localhost so host-side commands (seed-tenant, sync CLI) still work.
+      DATABASE_URL: postgres://anton:anton@postgres:5432/anton?sslmode=disable
+    depends_on:
+      postgres:
+        condition: service_healthy
     restart: unless-stopped
+
+volumes:
+  pgdata:

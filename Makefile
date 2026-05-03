@@ -1,10 +1,26 @@
-.PHONY: build run test lint clean docker-build docker-run
+.PHONY: build run test lint clean docker-build docker-run migrate sync seed-tenant compose-up compose-down
 
 build:
 	go build -o bin/server ./cmd/server
 
 run:
 	go run ./cmd/server
+
+migrate:
+	go run ./cmd/migrate
+
+sync:
+	go run ./cmd/sync
+
+seed-tenant:
+	@if [ -z "$(SLUG)" ]; then echo "usage: make seed-tenant SLUG=acme [NAME=Acme]"; exit 2; fi
+	go run ./cmd/seed-tenant -slug $(SLUG) $(if $(NAME),-name "$(NAME)",)
+
+compose-up:
+	docker compose up -d postgres
+
+compose-down:
+	docker compose down
 
 test:
 	go test ./... -v -race

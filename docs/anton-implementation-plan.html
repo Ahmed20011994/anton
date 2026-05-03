@@ -1,0 +1,1312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Anton — Product Decision Intelligence Platform: Implementation Plan</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+  :root {
+    --ink: #0f172a;
+    --ink-secondary: #475569;
+    --ink-tertiary: #94a3b8;
+    --accent: #3b82f6;
+    --accent-dark: #1d4ed8;
+    --accent-light: #eff6ff;
+    --warning: #f59e0b;
+    --warning-light: #fffbeb;
+    --success: #10b981;
+    --success-light: #ecfdf5;
+    --border: #e2e8f0;
+    --bg: #ffffff;
+    --bg-subtle: #f8fafc;
+    --code-bg: #1e293b;
+    --code-text: #e2e8f0;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Inter', system-ui, sans-serif;
+    font-size: 14px;
+    line-height: 1.7;
+    color: var(--ink);
+    background: var(--bg);
+    max-width: 920px;
+    margin: 0 auto;
+    padding: 0 40px 80px;
+  }
+
+  /* ── Cover ── */
+  .cover {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    border-bottom: 3px solid var(--accent);
+    padding: 80px 0 60px;
+    page-break-after: always;
+  }
+  .cover-label {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 24px;
+  }
+  .cover h1 {
+    font-size: 44px;
+    font-weight: 700;
+    line-height: 1.15;
+    letter-spacing: -0.02em;
+    color: var(--ink);
+    margin-bottom: 20px;
+  }
+  .cover h1 span { color: var(--accent); }
+  .cover-subtitle {
+    font-size: 18px;
+    font-weight: 400;
+    color: var(--ink-secondary);
+    max-width: 600px;
+    margin-bottom: 48px;
+    line-height: 1.6;
+  }
+  .cover-meta {
+    display: flex;
+    gap: 40px;
+    padding-top: 32px;
+    border-top: 1px solid var(--border);
+  }
+  .cover-meta-item { display: flex; flex-direction: column; gap: 4px; }
+  .cover-meta-label {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink-tertiary);
+  }
+  .cover-meta-value {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--ink);
+  }
+
+  /* ── TOC ── */
+  .toc {
+    padding: 48px 0;
+    page-break-after: always;
+  }
+  .toc h2 { margin-bottom: 24px; }
+  .toc ol {
+    list-style: none;
+    counter-reset: toc;
+  }
+  .toc > ol > li {
+    counter-increment: toc;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+  }
+  .toc > ol > li::before {
+    content: counter(toc, decimal-leading-zero);
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--accent);
+    min-width: 24px;
+  }
+  .toc > ol > li a {
+    font-weight: 500;
+    color: var(--ink);
+    text-decoration: none;
+    flex: 1;
+  }
+  .toc > ol > li a:hover { color: var(--accent); }
+  .toc-sub {
+    list-style: none;
+    padding-left: 36px;
+    margin-top: 4px;
+  }
+  .toc-sub li { padding: 3px 0; }
+  .toc-sub li a {
+    font-size: 13px;
+    color: var(--ink-secondary);
+    text-decoration: none;
+  }
+
+  /* ── Typography ── */
+  h1, h2, h3, h4 {
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    line-height: 1.3;
+    color: var(--ink);
+  }
+  h2 {
+    font-size: 26px;
+    font-weight: 700;
+    margin-top: 64px;
+    margin-bottom: 24px;
+    padding-bottom: 12px;
+    border-bottom: 2px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  h2 .section-num {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    background: var(--accent);
+    color: white;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+  h3 {
+    font-size: 18px;
+    margin-top: 36px;
+    margin-bottom: 14px;
+    color: var(--ink);
+  }
+  h4 {
+    font-size: 14px;
+    font-weight: 600;
+    margin-top: 24px;
+    margin-bottom: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--ink-secondary);
+  }
+  p { margin-bottom: 14px; }
+  strong { font-weight: 600; }
+  em { font-style: italic; color: var(--ink-secondary); }
+
+  /* ── Rule callout ── */
+  .rule {
+    background: var(--accent-light);
+    border-left: 4px solid var(--accent);
+    border-radius: 0 8px 8px 0;
+    padding: 16px 20px;
+    margin: 24px 0;
+    font-weight: 500;
+    color: var(--accent-dark);
+    font-size: 14px;
+    line-height: 1.6;
+  }
+
+  .callout {
+    background: var(--warning-light);
+    border-left: 4px solid var(--warning);
+    border-radius: 0 8px 8px 0;
+    padding: 16px 20px;
+    margin: 24px 0;
+    font-size: 13px;
+    color: #92400e;
+    line-height: 1.6;
+  }
+
+  .callout-green {
+    background: var(--success-light);
+    border-left: 4px solid var(--success);
+    border-radius: 0 8px 8px 0;
+    padding: 16px 20px;
+    margin: 24px 0;
+    font-size: 13px;
+    color: #065f46;
+    line-height: 1.6;
+  }
+
+  /* ── Code ── */
+  pre {
+    background: var(--code-bg);
+    color: var(--code-text);
+    border-radius: 10px;
+    padding: 20px 24px;
+    overflow-x: auto;
+    font-family: 'JetBrains Mono', 'Fira Code', monospace;
+    font-size: 12.5px;
+    line-height: 1.7;
+    margin: 16px 0 24px;
+  }
+  code {
+    font-family: 'JetBrains Mono', 'Fira Code', monospace;
+    font-size: 12.5px;
+    background: var(--bg-subtle);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 1px 6px;
+    color: var(--accent-dark);
+  }
+  pre code {
+    background: none;
+    border: none;
+    padding: 0;
+    color: inherit;
+    font-size: inherit;
+  }
+
+  /* Syntax colours */
+  .kw { color: #93c5fd; }
+  .cls { color: #67e8f9; }
+  .fn { color: #a5f3fc; }
+  .st { color: #86efac; }
+  .cm { color: #64748b; font-style: italic; }
+  .ty { color: #fde68a; }
+  .dc { color: #94a3b8; }
+
+  /* ── Tables ── */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 16px 0 24px;
+    font-size: 13px;
+  }
+  thead tr { background: var(--ink); color: white; }
+  thead th {
+    padding: 10px 14px;
+    text-align: left;
+    font-weight: 600;
+    font-size: 12px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+  tbody tr { border-bottom: 1px solid var(--border); }
+  tbody tr:nth-child(even) { background: var(--bg-subtle); }
+  tbody td { padding: 9px 14px; vertical-align: top; line-height: 1.5; }
+  tbody td:first-child { font-weight: 500; }
+
+  /* ── Layer cards ── */
+  .layer-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin: 24px 0;
+  }
+  .layer-card {
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 20px;
+    background: var(--bg-subtle);
+  }
+  .layer-card-num {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 6px;
+  }
+  .layer-card h3 { font-size: 15px; margin-top: 0; margin-bottom: 8px; }
+  .layer-card p { font-size: 13px; color: var(--ink-secondary); margin: 0; line-height: 1.5; }
+
+  /* ── Field table ── */
+  .field-table { font-size: 12.5px; }
+  .field-table thead th { font-size: 11px; }
+  .field-table .field-name {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--accent-dark);
+    font-weight: 500;
+  }
+  .field-table .field-type {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--ink-secondary);
+  }
+
+  /* ── Pipeline steps ── */
+  .pipeline-steps { margin: 24px 0; }
+  .pipeline-step {
+    display: flex;
+    gap: 20px;
+    padding: 20px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .pipeline-step:last-child { border-bottom: none; }
+  .step-num {
+    display: flex;
+    align-items: flex-start;
+    flex-shrink: 0;
+    padding-top: 2px;
+  }
+  .step-num span {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    background: var(--accent);
+    color: white;
+    border-radius: 50%;
+    font-size: 13px;
+    font-weight: 700;
+  }
+  .step-content h4 { margin-top: 0; font-size: 14px; font-weight: 600; text-transform: none; letter-spacing: 0; color: var(--ink); }
+  .step-content p { font-size: 13px; color: var(--ink-secondary); margin: 4px 0 0; }
+
+  /* ── Detector cards ── */
+  .detector-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin: 20px 0;
+  }
+  .detector-card {
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 18px 20px;
+    background: var(--bg);
+  }
+  .detector-card .detector-name {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--accent);
+    margin-bottom: 6px;
+    display: block;
+  }
+  .detector-card h4 { font-size: 14px; font-weight: 600; text-transform: none; letter-spacing: 0; color: var(--ink); margin: 0 0 8px; }
+  .detector-card p { font-size: 12.5px; color: var(--ink-secondary); margin: 0 0 10px; line-height: 1.5; }
+  .detector-card .logic {
+    font-size: 11.5px;
+    background: var(--bg-subtle);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 8px 12px;
+    color: var(--ink-secondary);
+    line-height: 1.5;
+  }
+
+  /* ── Arch diagram ── */
+  .arch-diagram {
+    background: var(--code-bg);
+    border-radius: 10px;
+    padding: 28px 32px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12.5px;
+    line-height: 1.9;
+    color: var(--code-text);
+    margin: 20px 0 28px;
+    overflow-x: auto;
+  }
+  .arch-diagram .arch-label { color: #93c5fd; font-weight: 600; }
+  .arch-diagram .arch-arrow { color: #64748b; }
+  .arch-diagram .arch-box { color: #86efac; }
+  .arch-diagram .arch-db { color: #fde68a; }
+  .arch-diagram .arch-note { color: #94a3b8; font-style: italic; }
+
+  /* ── Digest preview ── */
+  .digest-preview {
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+    margin: 20px 0;
+  }
+  .digest-preview-header {
+    background: var(--ink);
+    color: white;
+    padding: 10px 20px;
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 0.05em;
+  }
+  .digest-preview-body {
+    padding: 20px 24px;
+    background: var(--bg-subtle);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    line-height: 1.7;
+    color: var(--ink-secondary);
+  }
+
+  /* ── Tech stack pills ── */
+  .stack-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin: 20px 0;
+  }
+  .stack-card {
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px 16px;
+    background: var(--bg-subtle);
+  }
+  .stack-card .stack-role {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink-tertiary);
+    margin-bottom: 4px;
+  }
+  .stack-card .stack-tech {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--ink);
+    margin-bottom: 3px;
+  }
+  .stack-card .stack-why { font-size: 12px; color: var(--ink-secondary); line-height: 1.4; }
+
+  /* ── Print ── */
+  @media print {
+    body { padding: 0 32px 60px; font-size: 12px; max-width: 100%; }
+    .cover { min-height: auto; padding: 60px 0 40px; }
+    .cover h1 { font-size: 36px; }
+    h2 { font-size: 22px; margin-top: 40px; }
+    pre { font-size: 11px; padding: 14px 18px; }
+    .layer-grid, .stack-grid { grid-template-columns: 1fr 1fr; }
+    .detector-grid { grid-template-columns: 1fr 1fr; }
+    a { color: inherit; text-decoration: none; }
+    .cover { page-break-after: always; }
+    .toc { page-break-after: always; }
+    h2 { page-break-before: auto; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════════ COVER -->
+<div class="cover">
+  <div class="cover-label">Technical Implementation Plan · v1</div>
+  <h1>Anton — <span>Product Decision</span><br>Intelligence Platform</h1>
+  <p class="cover-subtitle">
+    A system that ingests data from Zendesk and Jira, correlates signals across them, and produces
+    a weekly digest that surfaces misalignments between customer reality and engineering reality.
+    The digest is the product. Everything else is plumbing.
+  </p>
+  <div class="cover-meta">
+    <div class="cover-meta-item">
+      <span class="cover-meta-label">Module</span>
+      <span class="cover-meta-value">github.com/Ahmed20011994/anton</span>
+    </div>
+    <div class="cover-meta-item">
+      <span class="cover-meta-label">Languages</span>
+      <span class="cover-meta-value">Go (server) · Python 3.12 (pipeline)</span>
+    </div>
+    <div class="cover-meta-item">
+      <span class="cover-meta-label">Database</span>
+      <span class="cover-meta-value">PostgreSQL 16 + pgvector</span>
+    </div>
+    <div class="cover-meta-item">
+      <span class="cover-meta-label">Date</span>
+      <span class="cover-meta-value">April 2026</span>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════ TOC -->
+<div class="toc">
+  <h2>Contents</h2>
+  <ol>
+    <li><a href="#s1">System Overview</a></li>
+    <li><a href="#s2">The Architectural Rule</a></li>
+    <li><a href="#s3">System Layers</a></li>
+    <li><a href="#s4">Layer 1 — Connectors</a>
+      <ul class="toc-sub">
+        <li><a href="#s4-interface">Connector Interface</a></li>
+        <li><a href="#s4-zendesk">Zendesk Connector</a></li>
+        <li><a href="#s4-jira">Jira Connector</a></li>
+        <li><a href="#s4-reliability">Reliability &amp; Error Handling</a></li>
+      </ul>
+    </li>
+    <li><a href="#s5">Layer 2 — Canonical Data Models</a>
+      <ul class="toc-sub">
+        <li><a href="#s5-signal">CustomerSignal</a></li>
+        <li><a href="#s5-workitem">WorkItem</a></li>
+        <li><a href="#s5-account">Account</a></li>
+      </ul>
+    </li>
+    <li><a href="#s6">Database Schema</a>
+      <ul class="toc-sub">
+        <li><a href="#s6-tables">All Tables</a></li>
+        <li><a href="#s6-indexes">Indexes &amp; Vector Search</a></li>
+        <li><a href="#s6-migrations">Migration Strategy</a></li>
+      </ul>
+    </li>
+    <li><a href="#s7">Layer 3 — Intelligence Pipeline</a>
+      <ul class="toc-sub">
+        <li><a href="#s7-embed">Step 1: Embedding</a></li>
+        <li><a href="#s7-cluster">Step 2: Clustering</a></li>
+        <li><a href="#s7-label">Step 3: Labeling</a></li>
+        <li><a href="#s7-match">Step 4: Matching</a></li>
+        <li><a href="#s7-score">Step 5: Scoring</a></li>
+        <li><a href="#s7-detectors">Step 6: Misalignment Detectors</a></li>
+      </ul>
+    </li>
+    <li><a href="#s8">Layer 4 — Delivery</a></li>
+    <li><a href="#s9">Infrastructure &amp; Orchestration</a></li>
+    <li><a href="#s10">Data Flow: End-to-End</a></li>
+    <li><a href="#s11">Technology Stack</a></li>
+    <li><a href="#s12">Design Constraints &amp; Future Proofing</a></li>
+  </ol>
+</div>
+
+<!-- ══════════════════════════════════════════════ S1 OVERVIEW -->
+<h2 id="s1"><span class="section-num">1</span> System Overview</h2>
+
+<p>Anton is a product intelligence platform that answers one question every week: <strong>where is engineering attention misaligned with customer pain?</strong> It does this by pulling data from support tools (Zendesk) and engineering tools (Jira), finding the patterns customers are reporting, matching them to what engineering is working on, and surfacing the gaps — shipped without being felt, fixed but still breaking, building while customers scream about something else.</p>
+
+<p>The output is a <strong>weekly digest email</strong>. Not a dashboard. Not a real-time feed. A weekly document that a PM or engineering lead can read in five minutes and act on.</p>
+
+<div class="arch-diagram">
+<span class="arch-label">External Systems</span>
+                        │
+         ┌──────────────┴──────────────┐
+         ▼                             ▼
+<span class="arch-box">  ┌──────────────┐         ┌──────────────┐</span>
+<span class="arch-box">  │   Zendesk    │         │     Jira     │</span>
+<span class="arch-box">  └──────┬───────┘         └──────┬───────┘</span>
+         │ ZendeskConnector        │ JiraConnector
+         ▼                         ▼
+<span class="arch-label">Layer 1: Connectors  (translate to canonical models)</span>
+         │                         │
+         └──────────┬──────────────┘
+                    ▼
+<span class="arch-label">Layer 2: Canonical Data Layer</span>
+<span class="arch-db">  ┌─────────────────────────────────────────────┐</span>
+<span class="arch-db">  │  PostgreSQL + pgvector                      │</span>
+<span class="arch-db">  │  customer_signals │ work_items │ accounts    │</span>
+<span class="arch-db">  │  embeddings │ clusters │ digest_runs         │</span>
+<span class="arch-db">  └────────────────────┬────────────────────────┘</span>
+                       │ (weekly cron)
+                       ▼
+<span class="arch-label">Layer 3: Intelligence Pipeline</span>
+  embed → cluster → label → match → score → detect
+
+                       │
+                       ▼
+<span class="arch-label">Layer 4: Delivery</span>
+<span class="arch-box">  ┌────────────────────────────────┐</span>
+<span class="arch-box">  │  Weekly Digest (Markdown/HTML) │</span>
+<span class="arch-box">  │  → Email                       │</span>
+<span class="arch-box">  └────────────────────────────────┘</span>
+</div>
+
+<!-- ══════════════════════════════════════════════ S2 RULE -->
+<h2 id="s2"><span class="section-num">2</span> The Architectural Rule</h2>
+
+<div class="rule">
+  The intelligence layer must never know which tools the data came from. Connectors translate external tools into canonical models. The intelligence layer reads canonical models only. Adding a new tool means writing a new connector — not touching the intelligence layer.
+</div>
+
+<p>This rule has one practical consequence: if you search the entire <code>pipeline/intelligence/</code> directory, you will find zero imports from <code>pipeline/connectors/</code>, zero references to "zendesk" or "jira", and zero field accesses like <code>ticket.type</code> or <code>issue.issuetype</code>. The intelligence layer knows three things: <code>CustomerSignal</code>, <code>WorkItem</code>, and <code>Account</code>. That is its entire vocabulary.</p>
+
+<p>The practical payoff: when a customer says "we use Intercom, not Zendesk", the answer is "we're writing that connector" — not "we need to rewrite the pipeline". The canonical model abstraction is what makes this a multi-tool platform rather than a Zendesk+Jira script.</p>
+
+<!-- ══════════════════════════════════════════════ S3 LAYERS -->
+<h2 id="s3"><span class="section-num">3</span> System Layers</h2>
+
+<div class="layer-grid">
+  <div class="layer-card">
+    <div class="layer-card-num">Layer 1</div>
+    <h3>Connectors</h3>
+    <p>Each integration is a standalone module. Authenticates with an external tool, pulls data incrementally, and maps it into canonical models. Handles its own pagination, rate limits, retries, and errors. Does not interpret or score data. If one connector fails, the others still run.</p>
+  </div>
+  <div class="layer-card">
+    <div class="layer-card-num">Layer 2</div>
+    <h3>Canonical Data Layer</h3>
+    <p>The internal language the platform speaks regardless of source. A Zendesk ticket and an Intercom conversation both become <code>CustomerSignal</code>. A Jira issue and a Linear issue both become <code>WorkItem</code>. Stored in PostgreSQL with pgvector for semantic search.</p>
+  </div>
+  <div class="layer-card">
+    <div class="layer-card-num">Layer 3</div>
+    <h3>Intelligence Pipeline</h3>
+    <p>Operates on canonical models only. Runs weekly. Embeds, clusters, labels, matches, scores, and detects misalignment signals. Each step is a standalone module. New detectors can be added without modifying existing ones.</p>
+  </div>
+  <div class="layer-card">
+    <div class="layer-card-num">Layer 4</div>
+    <h3>Delivery</h3>
+    <p>Renders the output of the intelligence pipeline into a weekly digest. Markdown or HTML, delivered by email. The digest template is configurable. No dashboard. No real-time feed. Thin layer — its only job is formatting and sending.</p>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════ S4 CONNECTORS -->
+<h2 id="s4"><span class="section-num">4</span> Layer 1 — Connectors</h2>
+
+<p>Connectors are the boundary between the outside world and the platform. Everything messy about external APIs — auth flows, cursor pagination, rate limit headers, retries, schema drift — is handled here and never leaks past this layer.</p>
+
+<h3 id="s4-interface">Connector Interface</h3>
+<p>Every connector implements the same abstract base class. The orchestration layer calls them identically regardless of source. The interface is defined in <code>pipeline/connectors/base.py</code>.</p>
+
+<pre><code><span class="kw">from</span> abc <span class="kw">import</span> ABC, abstractmethod
+<span class="kw">from</span> datetime <span class="kw">import</span> datetime
+<span class="kw">from</span> typing <span class="kw">import</span> Iterator
+
+<span class="kw">class</span> <span class="cls">ConnectorBase</span>(ABC):
+
+    <span class="dc">@abstractmethod</span>
+    <span class="kw">def</span> <span class="fn">connect</span>(self) -> None:
+        <span class="cm">"""Validate credentials. Raise ConnectorAuthError on failure.
+        Must be idempotent — safe to call multiple times."""</span>
+
+    <span class="dc">@abstractmethod</span>
+    <span class="kw">def</span> <span class="fn">health_check</span>(self) -> dict:
+        <span class="cm">"""Return {"ok": bool, "latency_ms": int, "detail": str}.
+        Must never raise — surface errors in the returned dict."""</span>
+
+    <span class="dc">@abstractmethod</span>
+    <span class="kw">def</span> <span class="fn">sync</span>(self, since: datetime) -> Iterator[<span class="ty">CustomerSignal | WorkItem | Account</span>]:
+        <span class="cm">"""Yield canonical models updated since `since`.
+        Handles pagination, rate limiting, and retries internally.
+        Yields as items are fetched — do not buffer in memory."""</span>
+
+    <span class="dc">@abstractmethod</span>
+    <span class="kw">def</span> <span class="fn">backfill</span>(self, from_date: datetime) -> Iterator[<span class="ty">CustomerSignal | WorkItem | Account</span>]:
+        <span class="cm">"""Full historical pull. Same contract as sync()."""</span>
+
+
+<span class="cm"># Error hierarchy</span>
+<span class="kw">class</span> <span class="cls">ConnectorError</span>(Exception): ...
+<span class="kw">class</span> <span class="cls">ConnectorAuthError</span>(<span class="cls">ConnectorError</span>): ...
+<span class="kw">class</span> <span class="cls">ConnectorNetworkError</span>(<span class="cls">ConnectorError</span>): ...
+<span class="kw">class</span> <span class="cls">ConnectorRateLimitError</span>(<span class="cls">ConnectorError</span>):
+    <span class="kw">def</span> <span class="fn">__init__</span>(self, retry_after_seconds: int): ...</code></pre>
+
+<h3 id="s4-zendesk">Zendesk Connector</h3>
+<p>File: <code>pipeline/connectors/zendesk.py</code> — implements <code>ZendeskConnector</code>.</p>
+
+<table>
+  <thead><tr><th>Concern</th><th>Implementation</th></tr></thead>
+  <tbody>
+    <tr><td>Authentication</td><td>Basic auth: <code>{email}/token:{api_token}</code> header on every request</td></tr>
+    <tr><td>Incremental sync</td><td>Zendesk Incremental Exports API: <code>/api/v2/incremental/tickets/cursor.json?start_time={unix_ts}</code></td></tr>
+    <tr><td>Pagination</td><td>Cursor-based via <code>after_cursor</code> in response; loop until <code>end_of_stream: true</code></td></tr>
+    <tr><td>Rate limits</td><td>700 req/min; respect <code>Retry-After</code> header; exponential backoff on 429 (max 3 retries)</td></tr>
+    <tr><td>Field mapping</td><td><code>ticket.type</code> → <code>signal_type</code> via static dict; <code>ticket.organization_id</code> → <code>account_identifier</code>; <code>ticket.requester.email</code> → <code>customer_identifier</code></td></tr>
+    <tr><td>Satisfaction score</td><td><code>ticket.satisfaction_rating.score</code> normalized to 1–5 numeric scale</td></tr>
+    <tr><td>Raw payload</td><td>Full ticket JSON stored in <code>raw_payload</code> for future field extraction</td></tr>
+  </tbody>
+</table>
+
+<h4>Signal type mapping</h4>
+<pre><code>ZENDESK_TYPE_MAP = {
+    <span class="st">"problem"</span>:  <span class="st">"bug_report"</span>,
+    <span class="st">"incident"</span>: <span class="st">"bug_report"</span>,
+    <span class="st">"question"</span>: <span class="st">"question"</span>,
+    <span class="st">"task"</span>:     <span class="st">"feature_request"</span>,
+    None:       <span class="st">"complaint"</span>,     <span class="cm"># tickets with no type default to complaint</span>
+}</code></pre>
+
+<h3 id="s4-jira">Jira Connector</h3>
+<p>File: <code>pipeline/connectors/jira.py</code> — implements <code>JiraConnector</code>.</p>
+
+<table>
+  <thead><tr><th>Concern</th><th>Implementation</th></tr></thead>
+  <tbody>
+    <tr><td>Authentication</td><td>Basic auth: <code>{email}:{api_token}</code>; base URL from config</td></tr>
+    <tr><td>Incremental sync</td><td>JQL: <code>updated >= "{since}" ORDER BY updated ASC</code></td></tr>
+    <tr><td>Pagination</td><td>Offset-based: <code>startAt</code> parameter; page size 100; loop until <code>startAt + maxResults &gt;= total</code></td></tr>
+    <tr><td>Rate limits</td><td>Honor <code>Retry-After</code> header; max 3 retries with 2ⁿ backoff</td></tr>
+    <tr><td>status_category</td><td>Jira's <code>status.statusCategory.key</code> maps directly: <code>new→todo</code>, <code>indeterminate→in_progress</code>, <code>done→done</code></td></tr>
+    <tr><td>item_type</td><td><code>issue.fields.issuetype.name.lower()</code> → <code>bug/feature/task/epic</code> via static dict</td></tr>
+    <tr><td>Linked signals</td><td><code>issue.fields.issuelinks</code> where link type matches "customer" or "support" → <code>linked_customer_signals[]</code></td></tr>
+    <tr><td>Comments</td><td><code>issue.fields.comment.comments</code> serialized as JSONB array</td></tr>
+  </tbody>
+</table>
+
+<h3 id="s4-reliability">Reliability &amp; Error Handling</h3>
+
+<p>The ingestion runner wraps each connector in an isolated <code>try/except</code> so a Zendesk outage never blocks Jira ingestion:</p>
+
+<pre><code><span class="kw">def</span> <span class="fn">run_nightly_sync</span>(tenant_id: str, conn) -> <span class="ty">SyncSummary</span>:
+    results = {}
+    <span class="kw">for</span> connector <span class="kw">in</span> [ZendeskConnector(), JiraConnector()]:
+        <span class="kw">try</span>:
+            connector.connect()
+            since = _get_last_sync_time(conn, tenant_id, connector.source_type)
+            count = 0
+            <span class="kw">for</span> record <span class="kw">in</span> connector.sync(since=since):
+                writer.upsert(conn, tenant_id, record)
+                count += 1
+            results[connector.source_type] = {<span class="st">"ok"</span>: True, <span class="st">"count"</span>: count}
+        <span class="kw">except</span> <span class="cls">ConnectorError</span> <span class="kw">as</span> exc:
+            results[connector.source_type] = {<span class="st">"ok"</span>: False, <span class="st">"error"</span>: str(exc)}
+            <span class="cm"># log and continue — do not re-raise</span>
+    <span class="kw">return</span> results</code></pre>
+
+<div class="callout">
+  <strong>Idempotency guarantee:</strong> All upserts use <code>INSERT ... ON CONFLICT (tenant_id, source_type, source_id) DO UPDATE SET ...</code>. Running the same sync twice produces identical DB state. A failed mid-run sync is safe to retry without cleanup.
+</div>
+
+<!-- ══════════════════════════════════════════════ S5 CANONICAL -->
+<h2 id="s5"><span class="section-num">5</span> Layer 2 — Canonical Data Models</h2>
+
+<p>These three models are the internal language of the platform. Every field that the intelligence layer uses must come from one of these models — never from a raw API response. The <code>raw_payload</code> field on each model stores the full API response, allowing new fields to be extracted later without re-ingesting data.</p>
+
+<h3 id="s5-signal">CustomerSignal</h3>
+<p>What a Zendesk ticket, an Intercom conversation, or a Freshdesk ticket all become once ingested.</p>
+
+<table class="field-table">
+  <thead><tr><th>Field</th><th>Type</th><th>Description</th></tr></thead>
+  <tbody>
+    <tr><td class="field-name">source_id</td><td class="field-type">TEXT</td><td>Original ID in the source system</td></tr>
+    <tr><td class="field-name">source_type</td><td class="field-type">TEXT</td><td><code>zendesk</code> | <code>intercom</code> | <code>freshdesk</code></td></tr>
+    <tr><td class="field-name">signal_type</td><td class="field-type">TEXT</td><td><code>complaint</code> | <code>bug_report</code> | <code>feature_request</code> | <code>question</code> | <code>praise</code></td></tr>
+    <tr><td class="field-name">subject</td><td class="field-type">TEXT</td><td>Short title or subject line</td></tr>
+    <tr><td class="field-name">body</td><td class="field-type">TEXT</td><td>Full content of the signal (HTML stripped)</td></tr>
+    <tr><td class="field-name">status</td><td class="field-type">TEXT</td><td>Source system status (open, pending, solved, closed)</td></tr>
+    <tr><td class="field-name">priority</td><td class="field-type">TEXT</td><td>urgent | high | normal | low</td></tr>
+    <tr><td class="field-name">customer_identifier</td><td class="field-type">TEXT</td><td>Requester email or ID</td></tr>
+    <tr><td class="field-name">account_identifier</td><td class="field-type">TEXT</td><td>Organization/company identifier — canonical account key</td></tr>
+    <tr><td class="field-name">created_at</td><td class="field-type">TIMESTAMPTZ</td><td>When the signal was created in the source system</td></tr>
+    <tr><td class="field-name">updated_at</td><td class="field-type">TIMESTAMPTZ</td><td>Last update in the source system</td></tr>
+    <tr><td class="field-name">resolved_at</td><td class="field-type">TIMESTAMPTZ</td><td>Nullable — when the signal was resolved</td></tr>
+    <tr><td class="field-name">satisfaction_score</td><td class="field-type">NUMERIC(3,1)</td><td>Normalized to 1–5 scale; NULL if not available</td></tr>
+    <tr><td class="field-name">escalation_level</td><td class="field-type">INT</td><td>0 = not escalated; higher = more escalated</td></tr>
+    <tr><td class="field-name">reopen_count</td><td class="field-type">INT</td><td>Number of times ticket was reopened</td></tr>
+    <tr><td class="field-name">conversation_thread</td><td class="field-type">JSONB</td><td>Array of reply objects with author, body, timestamp</td></tr>
+    <tr><td class="field-name">tags</td><td class="field-type">TEXT[]</td><td>Source system tags</td></tr>
+    <tr><td class="field-name">raw_payload</td><td class="field-type">JSONB</td><td>Full API response — used for future field extraction</td></tr>
+    <tr><td class="field-name">content_hash</td><td class="field-type">TEXT</td><td>SHA-256 of subject+body — used to skip re-embedding unchanged records</td></tr>
+  </tbody>
+</table>
+
+<h3 id="s5-workitem">WorkItem</h3>
+<p>What a Jira issue, a Linear issue, or a GitHub issue all become.</p>
+
+<table class="field-table">
+  <thead><tr><th>Field</th><th>Type</th><th>Description</th></tr></thead>
+  <tbody>
+    <tr><td class="field-name">source_id</td><td class="field-type">TEXT</td><td>Original ID (e.g., <code>PROJ-123</code>)</td></tr>
+    <tr><td class="field-name">source_type</td><td class="field-type">TEXT</td><td><code>jira</code> | <code>linear</code> | <code>github</code></td></tr>
+    <tr><td class="field-name">item_type</td><td class="field-type">TEXT</td><td><code>bug</code> | <code>feature</code> | <code>task</code> | <code>epic</code></td></tr>
+    <tr><td class="field-name">title</td><td class="field-type">TEXT</td><td>Issue title or summary</td></tr>
+    <tr><td class="field-name">description</td><td class="field-type">TEXT</td><td>Full description (HTML stripped)</td></tr>
+    <tr><td class="field-name">status</td><td class="field-type">TEXT</td><td>Raw status label from source system</td></tr>
+    <tr><td class="field-name">status_category</td><td class="field-type">TEXT</td><td><code>todo</code> | <code>in_progress</code> | <code>done</code> | <code>blocked</code> — normalized across tools</td></tr>
+    <tr><td class="field-name">priority</td><td class="field-type">TEXT</td><td>highest | high | medium | low | lowest</td></tr>
+    <tr><td class="field-name">assignees</td><td class="field-type">TEXT[]</td><td>List of assignee display names or emails</td></tr>
+    <tr><td class="field-name">created_at / updated_at / closed_at</td><td class="field-type">TIMESTAMPTZ</td><td>Lifecycle timestamps</td></tr>
+    <tr><td class="field-name">time_in_current_status</td><td class="field-type">INTERVAL</td><td>How long the item has been in its current status</td></tr>
+    <tr><td class="field-name">cycle_time</td><td class="field-type">INTERVAL</td><td>Time from first <code>in_progress</code> to <code>done</code></td></tr>
+    <tr><td class="field-name">reopen_count</td><td class="field-type">INT</td><td>Number of times closed then reopened</td></tr>
+    <tr><td class="field-name">comments</td><td class="field-type">JSONB</td><td>Array of comment objects</td></tr>
+    <tr><td class="field-name">linked_customer_signals</td><td class="field-type">TEXT[]</td><td>source_ids of linked support tickets — explicit bridge to customer signals</td></tr>
+    <tr><td class="field-name">version</td><td class="field-type">TEXT</td><td>Fix version or release tag</td></tr>
+    <tr><td class="field-name">raw_payload</td><td class="field-type">JSONB</td><td>Full API response</td></tr>
+    <tr><td class="field-name">content_hash</td><td class="field-type">TEXT</td><td>SHA-256 of title+description</td></tr>
+  </tbody>
+</table>
+
+<h3 id="s5-account">Account</h3>
+<p>The customer's end-customer. In v1, the support tool's organization field is the canonical identity anchor.</p>
+
+<table class="field-table">
+  <thead><tr><th>Field</th><th>Type</th><th>Description</th></tr></thead>
+  <tbody>
+    <tr><td class="field-name">source_id</td><td class="field-type">TEXT</td><td>Organization ID from support tool</td></tr>
+    <tr><td class="field-name">name</td><td class="field-type">TEXT</td><td>Organization/company name</td></tr>
+    <tr><td class="field-name">tier</td><td class="field-type">TEXT</td><td>enterprise | growth | starter | free</td></tr>
+    <tr><td class="field-name">arr</td><td class="field-type">NUMERIC(12,2)</td><td>Annual recurring revenue — used as revenue weight in scoring</td></tr>
+    <tr><td class="field-name">renewal_date</td><td class="field-type">DATE</td><td>Nullable — used to flag at-risk accounts in detectors</td></tr>
+  </tbody>
+</table>
+
+<!-- ══════════════════════════════════════════════ S6 DB SCHEMA -->
+<h2 id="s6"><span class="section-num">6</span> Database Schema</h2>
+
+<h3 id="s6-tables">All Tables</h3>
+
+<table>
+  <thead><tr><th>Table</th><th>Purpose</th><th>Key Columns</th></tr></thead>
+  <tbody>
+    <tr><td><code>tenants</code></td><td>Multi-tenancy anchor — every other table references this</td><td>id UUID, slug TEXT, name TEXT</td></tr>
+    <tr><td><code>accounts</code></td><td>Customer accounts</td><td>tenant_id, source_id, name, tier, arr, renewal_date</td></tr>
+    <tr><td><code>customer_signals</code></td><td>Canonical support signals</td><td>All CustomerSignal fields; UNIQUE(tenant_id, source_type, source_id)</td></tr>
+    <tr><td><code>work_items</code></td><td>Canonical engineering items</td><td>All WorkItem fields; UNIQUE(tenant_id, source_type, source_id)</td></tr>
+    <tr><td><code>embeddings</code></td><td>Vector embeddings for signals and work items</td><td>entity_type, entity_id, model, content_hash, embedding vector(1536)</td></tr>
+    <tr><td><code>clusters</code></td><td>Weekly theme clusters</td><td>run_id, label, summary, signal_count, centroid vector(1536)</td></tr>
+    <tr><td><code>signal_cluster_memberships</code></td><td>Which signals belong to which cluster</td><td>run_id, cluster_id, customer_signal_id, membership_prob, is_noise</td></tr>
+    <tr><td><code>work_item_matches</code></td><td>Which work items match which clusters</td><td>run_id, cluster_id, work_item_id, cosine_sim, match_method</td></tr>
+    <tr><td><code>digest_runs</code></td><td>Record of each weekly pipeline execution</td><td>started_at, finished_at, status, digest_markdown, delivered_at</td></tr>
+    <tr><td><code>cost_ledger</code></td><td>Token usage and cost per operation</td><td>run_id, operation, model, prompt_tokens, completion_tokens, estimated_usd</td></tr>
+    <tr><td><code>schema_migrations</code></td><td>Applied migration tracking</td><td>filename TEXT PK, applied_at TIMESTAMPTZ</td></tr>
+  </tbody>
+</table>
+
+<h4>customer_signals — full DDL</h4>
+<pre><code><span class="kw">CREATE TABLE</span> customer_signals (
+    id                   UUID <span class="kw">PRIMARY KEY DEFAULT</span> uuid_generate_v4(),
+    tenant_id            UUID <span class="kw">NOT NULL REFERENCES</span> tenants(id),
+    source_id            TEXT <span class="kw">NOT NULL</span>,
+    source_type          TEXT <span class="kw">NOT NULL</span>,
+    signal_type          TEXT <span class="kw">NOT NULL</span>,
+    subject              TEXT,
+    body                 TEXT,
+    status               TEXT,
+    priority             TEXT,
+    customer_identifier  TEXT,
+    account_identifier   TEXT,
+    created_at           TIMESTAMPTZ,
+    updated_at           TIMESTAMPTZ,
+    resolved_at          TIMESTAMPTZ,
+    satisfaction_score   NUMERIC(3,1),
+    escalation_level     INT <span class="kw">DEFAULT</span> 0,
+    reopen_count         INT <span class="kw">DEFAULT</span> 0,
+    conversation_thread  JSONB,
+    tags                 TEXT[],
+    raw_payload          JSONB,
+    content_hash         TEXT,
+    ingested_at          TIMESTAMPTZ <span class="kw">NOT NULL DEFAULT</span> NOW(),
+    <span class="kw">UNIQUE</span> (tenant_id, source_type, source_id)
+);
+<span class="kw">CREATE INDEX</span> idx_cs_tenant   <span class="kw">ON</span> customer_signals(tenant_id);
+<span class="kw">CREATE INDEX</span> idx_cs_account  <span class="kw">ON</span> customer_signals(tenant_id, account_identifier);
+<span class="kw">CREATE INDEX</span> idx_cs_updated  <span class="kw">ON</span> customer_signals(tenant_id, updated_at <span class="kw">DESC</span>);
+<span class="kw">CREATE INDEX</span> idx_cs_type     <span class="kw">ON</span> customer_signals(tenant_id, signal_type);</code></pre>
+
+<h3 id="s6-indexes">Indexes &amp; Vector Search</h3>
+
+<p>The <code>embeddings</code> table uses an IVFFlat index for approximate nearest-neighbour search:</p>
+
+<pre><code><span class="kw">CREATE INDEX</span> idx_embeddings_ivfflat <span class="kw">ON</span> embeddings
+    <span class="kw">USING</span> ivfflat (embedding vector_cosine_ops)
+    <span class="kw">WITH</span> (lists = 100);
+<span class="cm">-- Recreate after bulk load with appropriate lists value (sqrt(row_count))</span></code></pre>
+
+<p>Similarity search used by the matching step:</p>
+<pre><code><span class="kw">SELECT</span> entity_id, 1 - (embedding <=> %s) <span class="kw">AS</span> cosine_sim
+<span class="kw">FROM</span> embeddings
+<span class="kw">WHERE</span> tenant_id = %s <span class="kw">AND</span> entity_type = <span class="st">'work_item'</span>
+<span class="kw">ORDER BY</span> embedding <=> %s
+<span class="kw">LIMIT</span> 10;</code></pre>
+
+<h3 id="s6-migrations">Migration Strategy</h3>
+<p>Migrations are raw SQL files in <code>migrations/</code>, named numerically (<code>001_create_extensions.sql</code>, etc.). Python owns migrations — the Go server never runs them. <code>pipeline/db.py:run_migrations()</code> is called at the start of every entrypoint. It reads <code>schema_migrations</code> to determine which files have been applied, applies outstanding ones in order, and records them. This is intentionally simple — no Alembic, no down migrations in v1.</p>
+
+<!-- ══════════════════════════════════════════════ S7 INTELLIGENCE -->
+<h2 id="s7"><span class="section-num">7</span> Layer 3 — Intelligence Pipeline</h2>
+
+<p>The pipeline is orchestrated by <code>pipeline/intelligence/pipeline.py:run_weekly_pipeline(tenant_id, conn)</code>. It creates a <code>digest_runs</code> row with <code>status='running'</code>, then chains seven steps. Any unhandled exception sets <code>status='failed'</code> and records <code>error_message</code>. The pipeline produces a digest with partial data rather than failing entirely.</p>
+
+<div class="pipeline-steps">
+  <div class="pipeline-step">
+    <div class="step-num"><span>1</span></div>
+    <div class="step-content">
+      <h4>Embed — <code>intelligence/embed.py</code></h4>
+      <p>Generates vector embeddings for all customer signals and work items whose <code>content_hash</code> has changed since last embedding. Batches 100 records per API call to <code>text-embedding-3-small</code>. Skips unchanged records entirely. Records token usage and cost estimate in <code>cost_ledger</code>. Runs nightly (not just weekly) so the weekly pipeline always finds fresh embeddings.</p>
+    </div>
+  </div>
+  <div class="pipeline-step">
+    <div class="step-num"><span>2</span></div>
+    <div class="step-content">
+      <h4>Cluster — <code>intelligence/cluster.py</code></h4>
+      <p>Loads all signal embeddings for the tenant as a numpy array. Runs HDBSCAN with <code>min_cluster_size=5</code>, <code>min_samples=3</code>, <code>metric='cosine'</code>. Noise points (label -1) are tracked but excluded from labeling. Inserts <code>clusters</code> rows and <code>signal_cluster_memberships</code> rows with soft membership probabilities. Returns a list of <code>ClusterRecord</code> objects containing the cluster ID, signal IDs, and centroid vector.</p>
+    </div>
+  </div>
+  <div class="pipeline-step">
+    <div class="step-num"><span>3</span></div>
+    <div class="step-content">
+      <h4>Label — <code>intelligence/label.py</code></h4>
+      <p>For each cluster, takes the top 10 signals by membership probability and sends their subjects and bodies to GPT-4o with a structured JSON output prompt requesting a 3–5 word theme label and a one-sentence summary. Updates <code>clusters.label</code> and <code>clusters.summary</code>. Records cost. LLM is used here because labeling is genuinely a language understanding task that SQL cannot do.</p>
+    </div>
+  </div>
+  <div class="pipeline-step">
+    <div class="step-num"><span>4</span></div>
+    <div class="step-content">
+      <h4>Match — <code>intelligence/match.py</code></h4>
+      <p>For each cluster centroid, performs a pgvector cosine similarity search against work item embeddings. Threshold: <code>cosine_sim ≥ 0.75</code>. Also checks explicit links: if any signal in the cluster has a <code>source_id</code> that appears in any work item's <code>linked_customer_signals</code>, that work item is matched with <code>match_method='explicit_link'</code> regardless of similarity score. Inserts <code>work_item_matches</code> rows.</p>
+    </div>
+  </div>
+  <div class="pipeline-step">
+    <div class="step-num"><span>5</span></div>
+    <div class="step-content">
+      <h4>Score — <code>intelligence/score.py</code></h4>
+      <p>Computes a composite relevance score per cluster: <code>cosine_sim × signal_volume_weight × account_tier_multiplier</code>. Signal volume weight is the cluster's signal count normalized against the max signal count this run. Account tier multiplier is derived by looking up the accounts of signals in the cluster — enterprise accounts get a higher weight. Used to rank themes and weight misalignment findings.</p>
+    </div>
+  </div>
+  <div class="pipeline-step">
+    <div class="step-num"><span>6</span></div>
+    <div class="step-content">
+      <h4>Detect — <code>intelligence/detectors/</code></h4>
+      <p>Six standalone detector functions, each called independently. Each returns a list of <code>DetectorResult</code> objects with severity, headline, body, and supporting data. Detectors are isolated — adding a new one never modifies an existing one. All findings are collected and passed to the renderer.</p>
+    </div>
+  </div>
+</div>
+
+<h3 id="s7-detectors">Misalignment Detectors</h3>
+
+<div class="detector-grid">
+  <div class="detector-card">
+    <span class="detector-name">coverage_gap</span>
+    <h4>Coverage Gap</h4>
+    <p>A cluster is generating significant customer signal volume but has no active work items addressing it. Engineering is unaware of or ignoring the issue.</p>
+    <div class="logic">Clusters with signal_count above threshold AND zero rows in work_item_matches for this run_id.</div>
+  </div>
+  <div class="detector-card">
+    <span class="detector-name">silent_ship</span>
+    <h4>Silent Ship</h4>
+    <p>A work item was shipped, but the customer signal volume for the related cluster did not decrease after the ship date. The fix didn't actually fix it from the customer's perspective.</p>
+    <div class="logic">Work items where status_category='done' and closed_at is within 60 days. Compare signal count in the 2 weeks before vs. 2 weeks after closed_at. Flag if post-ship volume ≥ pre-ship volume.</div>
+  </div>
+  <div class="detector-card">
+    <span class="detector-name">fixed_not_fixed</span>
+    <h4>Fixed Not Fixed</h4>
+    <p>A work item is marked closed, but new signals semantically similar to that work item continue to be created after the close date. Customers are still hitting the bug.</p>
+    <div class="logic">Work items with closed_at set. Count new customer_signals with created_at &gt; closed_at whose embedding cosine similarity to the work item embedding is ≥ 0.80. Flag if count &gt; 3.</div>
+  </div>
+  <div class="detector-card">
+    <span class="detector-name">attention_asymmetry</span>
+    <h4>Attention Asymmetry</h4>
+    <p>Engineering activity is concentrated on clusters with low customer signal volume, while high-signal clusters have little or no engineering attention. Effort is inverted relative to customer pain.</p>
+    <div class="logic">Rank clusters by signal_count DESC. Rank clusters by active work item count DESC. Flag clusters where signal rank is in top quartile but work item rank is in bottom half.</div>
+  </div>
+  <div class="detector-card">
+    <span class="detector-name">forgotten_backlog</span>
+    <h4>Forgotten Backlog</h4>
+    <p>Work items that have explicit links to customer signals but have not been touched in months. Someone acknowledged the customer pain and created a ticket — then it was never picked up.</p>
+    <div class="logic">Work items where linked_customer_signals is non-empty AND updated_at &lt; NOW() - INTERVAL '90 days' AND status_category != 'done'.</div>
+  </div>
+  <div class="detector-card">
+    <span class="detector-name">release_correlation</span>
+    <h4>Release Correlation</h4>
+    <p>A spike in customer signals appears within a short window after a set of work items are closed under the same version or release tag. A release introduced a regression.</p>
+    <div class="logic">Group work items by version where multiple items closed in same 7-day window. Measure customer_signal.created_at density in 7 days post-release vs. baseline. Flag if spike &gt; 2σ above baseline.</div>
+  </div>
+</div>
+
+<h4>DetectorResult interface</h4>
+<pre><code><span class="kw">from</span> dataclasses <span class="kw">import</span> dataclass
+<span class="kw">from</span> typing <span class="kw">import</span> Optional
+<span class="kw">import</span> uuid
+
+<span class="dc">@dataclass</span>
+<span class="kw">class</span> <span class="cls">DetectorResult</span>:
+    detector_name:   str                  <span class="cm"># 'coverage_gap', 'silent_ship', etc.</span>
+    severity:        str                  <span class="cm"># 'high' | 'medium' | 'low'</span>
+    cluster_id:      Optional[uuid.UUID]
+    work_item_id:    Optional[uuid.UUID]
+    headline:        str                  <span class="cm"># 1-line summary for digest header</span>
+    body:            str                  <span class="cm"># 2-4 sentence explanation</span>
+    supporting_data: dict                 <span class="cm"># raw numbers (signal counts, dates, %s)</span></code></pre>
+
+<!-- ══════════════════════════════════════════════ S8 DELIVERY -->
+<h2 id="s8"><span class="section-num">8</span> Layer 4 — Delivery</h2>
+
+<p>The delivery layer is intentionally thin. Its only jobs are: render the intelligence output into a readable document, and send it. No business logic lives here.</p>
+
+<h3>Digest Renderer — <code>pipeline/delivery/renderer.py</code></h3>
+
+<p><code>render_digest(run_id, tenant_id, conn, findings: list[DetectorResult]) -> str</code> reads the digest_run, clusters, matches, and findings, and produces Markdown. The rendered string is stored in <code>digest_runs.digest_markdown</code> before being sent, so every digest is permanently archived.</p>
+
+<div class="digest-preview">
+  <div class="digest-preview-header">DIGEST OUTPUT STRUCTURE</div>
+  <div class="digest-preview-body"># Product Signal Digest — Week of 14 April 2026
+
+## Summary
+- 847 customer signals analyzed across 2 sources
+- 12 themes identified (↑3 vs last week)
+- 4 misalignment findings — 1 high severity
+
+---
+
+## Top Customer Themes This Week
+| Rank | Theme | Signals | Trend | Coverage |
+|------|-------|---------|-------|----------|
+| 1 | Mobile app crashes on checkout | 94 | ↑ 42% | ⚠️ No active work item |
+| 2 | SSO login failures | 67 | → stable | ✅ PROJ-412 in progress |
+| 3 | Export to CSV missing columns | 54 | ↑ 18% | ⚠️ PROJ-301 stale 87 days |
+
+---
+
+## Misalignment Findings
+
+### 🔴 HIGH: Coverage Gap — "Mobile app crashes on checkout"
+94 signals this week. No active work item found. This theme has been
+in the top 3 for 3 consecutive weeks.
+Supporting data: 94 signals, 0 linked work items, 6 affected accounts (2 enterprise)
+
+### 🟡 MEDIUM: Fixed Not Fixed — PROJ-288 "Payment timeout errors"
+Closed 3 weeks ago. 17 new signals with >80% semantic similarity opened
+since close date. Customers are still hitting this issue.
+Supporting data: closed 2026-03-24, 17 post-close signals, cosine_sim avg 0.87
+
+---
+
+## Work Item Coverage
+...
+
+---
+
+## This Run
+Signals analyzed: 847 | Themes: 12 | Cost: $0.34</div>
+</div>
+
+<h3>Email Delivery — <code>pipeline/delivery/email.py</code></h3>
+<p><code>send_digest(subject, body_markdown, to: list[str])</code> converts Markdown to HTML using the <code>markdown</code> library, sends via SMTP (smtplib), and updates <code>digest_runs.delivered_at</code> and <code>digest_runs.delivered_to</code>. All configuration (SMTP host, port, credentials, recipient list) comes from <code>Settings</code>.</p>
+
+<!-- ══════════════════════════════════════════════ S9 INFRASTRUCTURE -->
+<h2 id="s9"><span class="section-num">9</span> Infrastructure &amp; Orchestration</h2>
+
+<h3>Docker Compose</h3>
+<pre><code>services:
+
+  postgres:
+    image: pgvector/pgvector:pg16
+    environment:
+      POSTGRES_USER: anton
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: anton
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: [<span class="st">"CMD-SHELL"</span>, <span class="st">"pg_isready -U anton"</span>]
+      interval: 5s
+      retries: 10
+
+  pipeline:
+    build:
+      context: ./pipeline
+      dockerfile: Dockerfile
+    env_file: .env
+    depends_on:
+      postgres:
+        condition: service_healthy
+    <span class="cm"># Not always-on. Triggered by cron via: docker compose run --rm pipeline ...</span>
+
+  cron:
+    image: alpine:3.19
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./scripts/crontab:/etc/crontabs/root
+    command: crond -f -l 2
+
+  anton:                  <span class="cm"># existing Go HTTP server</span>
+    build: .
+    ports: [<span class="st">"8080:8080"</span>]
+    env_file: .env
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  pgdata:</code></pre>
+
+<h3>Cron Schedule</h3>
+<pre><code><span class="cm"># Nightly data sync — 2:00 AM UTC</span>
+0 2 * * * docker compose run --rm pipeline \
+    python -m pipeline.entrypoints.nightly_sync >> /var/log/nightly_sync.log 2>&1
+
+<span class="cm"># Weekly digest — Monday 6:00 AM UTC</span>
+0 6 * * 1 docker compose run --rm pipeline \
+    python -m pipeline.entrypoints.weekly_digest >> /var/log/weekly_digest.log 2>&1</code></pre>
+
+<h3>Environment Variables</h3>
+<table>
+  <thead><tr><th>Variable</th><th>Used By</th><th>Description</th></tr></thead>
+  <tbody>
+    <tr><td><code>DATABASE_URL</code></td><td>Go + Python</td><td>Full postgres connection string</td></tr>
+    <tr><td><code>TENANT_ID</code></td><td>Python</td><td>UUID of the single tenant (v1)</td></tr>
+    <tr><td><code>POSTGRES_PASSWORD</code></td><td>docker-compose</td><td>Postgres superuser password</td></tr>
+    <tr><td><code>PORT</code></td><td>Go</td><td>HTTP server port (default 8080)</td></tr>
+    <tr><td><code>APP_ENV</code></td><td>Go + Python</td><td>development | production</td></tr>
+    <tr><td><code>ZENDESK_SUBDOMAIN</code></td><td>Python</td><td>e.g. <code>acme</code> in <code>acme.zendesk.com</code></td></tr>
+    <tr><td><code>ZENDESK_EMAIL</code></td><td>Python</td><td>Auth email for Zendesk API</td></tr>
+    <tr><td><code>ZENDESK_API_TOKEN</code></td><td>Python</td><td>Zendesk API token</td></tr>
+    <tr><td><code>JIRA_BASE_URL</code></td><td>Python</td><td>e.g. <code>https://acme.atlassian.net</code></td></tr>
+    <tr><td><code>JIRA_EMAIL</code></td><td>Python</td><td>Auth email for Jira API</td></tr>
+    <tr><td><code>JIRA_API_TOKEN</code></td><td>Python</td><td>Jira API token</td></tr>
+    <tr><td><code>OPENAI_API_KEY</code></td><td>Python</td><td>Used for embeddings + LLM labeling</td></tr>
+    <tr><td><code>DIGEST_EMAIL_TO</code></td><td>Python</td><td>Comma-separated recipient emails</td></tr>
+    <tr><td><code>SMTP_HOST</code></td><td>Python</td><td>SMTP server hostname</td></tr>
+    <tr><td><code>SMTP_PORT</code></td><td>Python</td><td>Default 587 (STARTTLS)</td></tr>
+    <tr><td><code>SMTP_USER / SMTP_PASSWORD</code></td><td>Python</td><td>SMTP credentials</td></tr>
+  </tbody>
+</table>
+
+<h3>Go Server Role</h3>
+<p>In v1, the Go server serves only <code>GET /healthz</code>. There is <strong>no API</strong> between Go and Python. Python writes directly to PostgreSQL. The two processes are fully decoupled — the Go server can be down without affecting pipeline runs. The Go server's presence is forward-looking: it is the foundation for future webhooks, a configuration API, and per-user digest endpoints when those are needed.</p>
+
+<!-- ══════════════════════════════════════════════ S10 DATA FLOW -->
+<h2 id="s10"><span class="section-num">10</span> Data Flow: End-to-End</h2>
+
+<div class="arch-diagram">
+<span class="arch-label">NIGHTLY (2 AM UTC)</span>
+
+Zendesk API ──► ZendeskConnector.sync(since)
+                 │ maps to CustomerSignal
+                 ▼
+              writer.upsert_signal()
+                 │
+                 ▼
+<span class="arch-db">         customer_signals table</span>
+                 │
+                 ▼
+              embed.embed_pending_signals()  ──► OpenAI API (text-embedding-3-small)
+                 │                                │ batch 100 records per call
+                 ▼                                ▼
+<span class="arch-db">           embeddings table              cost_ledger table</span>
+
+Jira API ──► JiraConnector.sync(since)
+              │ maps to WorkItem
+              ▼
+           writer.upsert_work_item()  ──► <span class="arch-db">work_items table</span>
+              │
+              ▼
+           embed.embed_pending_work_items()  ──► OpenAI API
+              ▼
+<span class="arch-db">        embeddings table</span>
+
+
+<span class="arch-label">WEEKLY (Monday 6 AM UTC)</span>
+
+<span class="arch-db">embeddings (signals)</span>
+    │
+    ▼
+cluster.cluster_signals()  ←── HDBSCAN
+    │
+    ├──► <span class="arch-db">clusters table</span>
+    └──► <span class="arch-db">signal_cluster_memberships table</span>
+    │
+    ▼
+label.label_clusters()  ──► GPT-4o (structured output)
+    │                         {"label": "...", "summary": "..."}
+    ▼
+<span class="arch-db">clusters.label, clusters.summary</span>  (updated)
+    │
+    ▼
+match.match_clusters_to_work_items()
+    │  pgvector cosine search: embedding <=> centroid
+    │  + explicit link check via linked_customer_signals
+    ▼
+<span class="arch-db">work_item_matches table</span>
+    │
+    ▼
+score.score_matches()
+    │  cosine_sim × signal_volume_weight × account_tier_multiplier
+    ▼
+[ScoredMatch list] (in memory)
+    │
+    ├──► coverage_gap.detect()
+    ├──► silent_ship.detect()
+    ├──► fixed_not_fixed.detect()      ┐
+    ├──► attention_asymmetry.detect()  ├──► [list[DetectorResult]]
+    ├──► forgotten_backlog.detect()    │
+    └──► release_correlation.detect()  ┘
+                    │
+                    ▼
+         renderer.render_digest()
+                    │  Markdown string
+                    ▼
+<span class="arch-db">   digest_runs.digest_markdown</span>  (stored permanently)
+                    │
+                    ▼
+         email.send_digest()  ──► SMTP ──► Inbox
+                    │
+                    ▼
+<span class="arch-db">   digest_runs.delivered_at, delivered_to</span>  (updated)
+</div>
+
+<!-- ══════════════════════════════════════════════ S11 TECH STACK -->
+<h2 id="s11"><span class="section-num">11</span> Technology Stack</h2>
+
+<div class="stack-grid">
+  <div class="stack-card">
+    <div class="stack-role">HTTP Server</div>
+    <div class="stack-tech">Go 1.22 + stdlib</div>
+    <div class="stack-why">net/http, slog, signal.NotifyContext. No external dependencies.</div>
+  </div>
+  <div class="stack-card">
+    <div class="stack-role">Pipeline Language</div>
+    <div class="stack-tech">Python 3.12</div>
+    <div class="stack-why">Best ecosystem for embeddings, clustering, and LLM integrations.</div>
+  </div>
+  <div class="stack-card">
+    <div class="stack-role">Canonical Models</div>
+    <div class="stack-tech">Pydantic v2</div>
+    <div class="stack-why">Validation, serialization, and type safety for canonical model boundaries.</div>
+  </div>
+  <div class="stack-card">
+    <div class="stack-role">Database</div>
+    <div class="stack-tech">PostgreSQL 16 + pgvector</div>
+    <div class="stack-why">One database does relational queries AND vector similarity search. No separate vector DB.</div>
+  </div>
+  <div class="stack-card">
+    <div class="stack-role">DB Driver</div>
+    <div class="stack-tech">psycopg2-binary</div>
+    <div class="stack-why">Mature, stable Postgres driver. ThreadedConnectionPool for sync pipeline.</div>
+  </div>
+  <div class="stack-card">
+    <div class="stack-role">Config</div>
+    <div class="stack-tech">pydantic-settings</div>
+    <div class="stack-why">Loads .env into typed Settings class. Fails fast on missing vars at startup.</div>
+  </div>
+  <div class="stack-card">
+    <div class="stack-role">Embeddings</div>
+    <div class="stack-tech">openai text-embedding-3-small</div>
+    <div class="stack-why">1536-dim vectors, low cost. Model swappable — stored in embeddings.model column.</div>
+  </div>
+  <div class="stack-card">
+    <div class="stack-role">Clustering</div>
+    <div class="stack-tech">HDBSCAN (scikit-learn)</div>
+    <div class="stack-why">Density-based; doesn't require specifying k; handles noise naturally; produces soft membership probabilities.</div>
+  </div>
+  <div class="stack-card">
+    <div class="stack-role">LLM (Labeling)</div>
+    <div class="stack-tech">GPT-4o (structured output)</div>
+    <div class="stack-why">Used only for labeling clusters — a genuine language task. Structured JSON output for reliability.</div>
+  </div>
+  <div class="stack-card">
+    <div class="stack-role">HTTP (Connectors)</div>
+    <div class="stack-tech">requests</div>
+    <div class="stack-why">Simple synchronous HTTP for connector API calls. Async not needed for nightly batch.</div>
+  </div>
+  <div class="stack-card">
+    <div class="stack-role">Email Delivery</div>
+    <div class="stack-tech">smtplib (stdlib)</div>
+    <div class="stack-why">No external dependency for email in v1. SendGrid can be swapped in if needed.</div>
+  </div>
+  <div class="stack-card">
+    <div class="stack-role">Containerization</div>
+    <div class="stack-tech">Docker + docker-compose</div>
+    <div class="stack-why">One command to start the full stack locally. Same compose file used in production for v1.</div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════ S12 CONSTRAINTS -->
+<h2 id="s12"><span class="section-num">12</span> Design Constraints &amp; Future Proofing</h2>
+
+<h3>Constraints Locked in v1</h3>
+
+<table>
+  <thead><tr><th>Constraint</th><th>Why it's locked</th></tr></thead>
+  <tbody>
+    <tr><td><code>tenant_id</code> on every table</td><td>Adding it later means migrating every table. This is the one future concession worth making now.</td></tr>
+    <tr><td><code>raw_payload JSONB</code> on canonical models</td><td>When the intelligence layer needs a field we didn't parse, re-derive from payload without re-ingesting.</td></tr>
+    <tr><td>Content hash on embeddable records</td><td>Skipping re-embedding unchanged records is the primary cost control mechanism. Second run costs $0.</td></tr>
+    <tr><td>Detectors are standalone functions</td><td>New detectors added without touching existing ones. Each detector is independently testable.</td></tr>
+    <tr><td>Per-connector try/except in runner</td><td>If one connector fails, others still run. Digests ship with partial data rather than failing entirely.</td></tr>
+    <tr><td>Field mappings hardcoded</td><td>v1 has one customer. The second and third customer onboardings will reveal what actually varies.</td></tr>
+    <tr><td>No API between Go and Python</td><td>No coupling means either can be changed independently. The Go server is a foundation, not a dependency.</td></tr>
+  </tbody>
+</table>
+
+<h3>Architectural Directions Preserved (Not Built Yet)</h3>
+
+<table>
+  <thead><tr><th>Future Need</th><th>How v1 Architecture Preserves It</th></tr></thead>
+  <tbody>
+    <tr><td>New connector (e.g., Intercom)</td><td>Write <code>pipeline/connectors/intercom.py</code>, implement <code>ConnectorBase</code>, add to runner. Intelligence layer untouched.</td></tr>
+    <tr><td>Second customer (tenant)</td><td><code>tenant_id</code> on every table means zero schema changes. Seed a new tenant row and set <code>TENANT_ID</code>.</td></tr>
+    <tr><td>Per-tenant field mappings</td><td>Field mapping dicts inside each connector become per-tenant config. Shape already defined by v1 hardcoded version.</td></tr>
+    <tr><td>Per-user digest views</td><td>Intelligence runs once per tenant. Delivery layer filters per user. <code>digest_runs</code> stores the full Markdown; per-user slices are subsets of it.</td></tr>
+    <tr><td>Different embedding model</td><td><code>embeddings.model</code> column is stored per record. Swap the model, re-embed, old embeddings stay for comparison.</td></tr>
+    <tr><td>Different LLM for labeling</td><td><code>label.py</code> is one file. Swap the model call. Nothing else changes.</td></tr>
+    <tr><td>Dashboard / API</td><td>All data is in Postgres with clean schema. The Go server is already there to serve it. No data restructuring needed.</td></tr>
+  </tbody>
+</table>
+
+<h3>The Correctness Test</h3>
+<div class="callout-green">
+  After v1, imagine adding Intercom as a third connector and onboarding a second customer who uses it. If that requires only (1) writing a new connector module and (2) creating a new tenant row — the architecture is correct. If it requires touching the intelligence layer, the scoring logic, or the digest renderer — the architecture has failed.
+</div>
+
+</body>
+</html>
